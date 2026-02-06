@@ -1,95 +1,114 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { CaseData, TrialPhase, TrialResult, TrialState } from "../lib/types";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { CaseInput, TrialPhase, TrialResult } from "../lib/types";
+import { calculateSeverity } from "../lib/scoring";
+import { PHASE_DELAYS } from "../lib/constants";
 import { generateJudgeIntro } from "../lib/generators/judge";
 import { generateProsecution } from "../lib/generators/prosecutor";
 import { generateDefense } from "../lib/generators/defense";
-import { generateJuryReactions } from "../lib/generators/jury";
+import { generateJurorTakes } from "../lib/generators/jury";
 import { generateVerdict } from "../lib/generators/verdict";
-import { getGuiltyRatio, calculateMishearingScore } from "../lib/scoring";
-import { saveTrialResult } from "../lib/storage";
-import { generateId } from "../lib/generators/templates";
 
-function buildTrialResult(caseData: CaseData): TrialResult {
-  const score = calculateMishearingScore(
-    caseData.misheardLyric,
-    caseData.realLyric
-  );
-  const guiltyRatio = getGuiltyRatio(score);
+function hashString(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0;
+  }
+  return hash;
+}
 
-  return {
-    caseData,
-    judge: generateJudgeIntro(caseData),
-    prosecution: generateProsecution(caseData),
-    defense: generateDefense(caseData),
-    jurors: generateJuryReactions(caseData, guiltyRatio),
-    verdict: generateVerdict(caseData),
-    timestamp: Date.now(),
-  };
+const PHASE_ORDER: readonly TrialPhase[] = [
+  "judge",
+  "prosecutor",
+  "defense",
+  "jury",
+  "verdict",
+  "complete",
+];
+
+interface TrialState {
+  readonly phase: TrialPhase;
+  readonly trialData: TrialResult | null;
+  readonly score: number | null;
 }
 
 const INITIAL_STATE: TrialState = {
-  phase: "filing",
-  caseData: null,
-  trialResult: null,
+  phase: "idle",
+  trialData: null,
+  score: null,
 };
 
 export function useTrialFlow() {
   const [state, setState] = useState<TrialState>(INITIAL_STATE);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const fileCase = useCallback(
-    (input: Omit<CaseData, "id" | "submittedAt">) => {
-      const caseData: CaseData = {
-        ...input,
-        id: generateId(),
-        submittedAt: Date.now(),
-      };
-      const trialResult = buildTrialResult(caseData);
+  useEffect(() => {
+    return () => {
+      if (timerRef.current !== null) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, []);
 
-      setState({
-        phase: "judge-intro",
-        caseData,
-        trialResult,
-      });
+  const schedulePhase = useCallback(
+    (nextPhase: TrialPhase, data?: Partial<TrialState>) => {
+      const delay = PHASE_DELAYS[nextPhase];
+
+      if (delay > 0) {
+        timerRef.current = setTimeout(() => {
+          setState((prev) => ({ ...prev, ...data, phase: nextPhase }));
+          timerRef.current = null;
+        }, delay);
+      } else {
+        setState((prev) => ({ ...prev, ...data, phase: nextPhase }));
+      }
     },
     []
   );
 
-  const advancePhase = useCallback(() => {
-    setState((prev) => {
-      const phaseOrder: TrialPhase[] = [
-        "filing",
-        "judge-intro",
-        "prosecution",
-        "defense",
-        "jury",
-        "verdict",
-      ];
-      const currentIndex = phaseOrder.indexOf(prev.phase);
-      const nextPhase = phaseOrder[currentIndex + 1] ?? "verdict";
+  const startTrial = useCallback(
+    (input: CaseInput) => {
+      setState((prev) => ({ ...prev, phase: "loading" }));
 
-      if (nextPhase === "verdict" && prev.trialResult) {
-        saveTrialResult(prev.trialResult);
-      }
+      const score = calculateSeverity(input.misheard, input.real);
+      const seed = hashString(input.misheard + input.real);
 
-      return { ...prev, phase: nextPhase };
-    });
-  }, []);
+      const trialData: TrialResult = {
+        judgeIntro: generateJudgeIntro(input, seed),
+        prosecution: generateProsecution(input, score, seed),
+        defense: generateDefense(input, score, seed),
+        jurors: generateJurorTakes(input, score, seed),
+        verdict: generateVerdict(input, score),
+      };
 
-  const goToHallOfShame = useCallback(() => {
-    setState((prev) => ({ ...prev, phase: "hall-of-shame" }));
-  }, []);
+      schedulePhase("judge", { trialData, score });
+    },
+    [schedulePhase]
+  );
+
+  const nextPhase = useCallback(() => {
+    const currentIndex = PHASE_ORDER.indexOf(state.phase);
+    if (currentIndex === -1 || currentIndex >= PHASE_ORDER.length - 1) return;
+
+    const next = PHASE_ORDER[currentIndex + 1];
+    schedulePhase(next);
+  }, [state.phase, schedulePhase]);
 
   const reset = useCallback(() => {
+    if (timerRef.current !== null) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
     setState(INITIAL_STATE);
   }, []);
 
   return {
-    state,
-    fileCase,
-    advancePhase,
-    goToHallOfShame,
+    phase: state.phase,
+    trialData: state.trialData,
+    score: state.score,
+    startTrial,
+    nextPhase,
     reset,
   } as const;
 }
