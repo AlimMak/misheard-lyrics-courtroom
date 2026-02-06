@@ -1,67 +1,69 @@
-import { CaseData, ProsecutionArgument } from "../types";
-import { fillTemplate, pickRandom, TemplateSlots } from "./templates";
-import { generateProsecutorName } from "./names";
+import { CaseInput } from "../types";
+import { seedableRandom, pickRandom, fillTemplate } from "./templates";
 
-const OPENINGS: readonly string[] = [
-  "Ladies and gentlemen of the jury, what you are about to hear will shake your faith in humanity's ability to listen.",
-  "The evidence before you today is irrefutable. The defendant has committed an act of pure lyrical vandalism.",
-  "I stand before you with a heavy heart and a heavier case file. The defendant's ears have FAILED them.",
-  "Members of the jury, I want you to brace yourselves. What the defendant claims to have heard... defies logic.",
-  "Your Honor, esteemed jurors — I have prosecuted many cases, but none have left me this personally offended.",
-  "The prosecution will demonstrate, beyond a reasonable doubt, that the defendant cannot be trusted around a radio.",
-  "I'd like to start by playing the original song for the jury. *presses play* HEAR THAT? That's what it ACTUALLY sounds like.",
-  "What we have here is not just a mishearing. It is a full-scale assault on the English language AND music simultaneously.",
-  "I urge the jury to consider: if someone can mishear THIS badly, what else are they getting wrong in life?",
-  "The prosecution intends to prove that this mishearing was not accidental — it was INEVITABLE given the defendant's listening skills.",
-  "Before I present my case, I'd like a moment of silence for the songwriter who has to live knowing THIS exists.",
-  "Your Honor, the prosecution wishes to enter Exhibit A: the defendant's confidence while singing the WRONG lyrics in public.",
-  "Ladies and gentlemen, we live in a world with lyric websites, subtitles, and search engines. The defendant has NO excuse.",
-  "I have prepared a thorough case, but honestly, the lyrics speak — or rather, SCREAM — for themselves.",
-  "The prosecution calls upon common sense, working eardrums, and basic literacy as our star witnesses today.",
+const LOW_TEMPLATES: readonly string[] = [
+  "Your Honor, let me be honest: this one's not the worst I've seen. '{misheard}' instead of '{real}' is... almost understandable. Almost. But the law is the law, and the lyrics are the lyrics.",
+  "Look, I'll admit it — '{misheard}' and '{real}' share some phonetic DNA. But 'close enough' doesn't hold up in a court of music. {artist_line}The prosecution maintains this was preventable.",
+  "I'm not going to pretend this is the crime of the century. '{misheard}' for '{real}'? Sure, I can see how it happened. But can I ACCEPT it? No. No I cannot.",
+  "Members of the jury, the prosecution acknowledges this is a minor offense. '{misheard}' bears a passing resemblance to '{real}'. But we have STANDARDS. {artist_line}Even small crimes deserve their day in court.",
+  "I'll keep this brief. '{misheard}' instead of '{real}'. Is it the worst I've prosecuted? No. Does it still warrant correction? Absolutely. {artist_line}The prosecution requests a gentle but firm verdict.",
+  "Your Honor, this is what we in the legal profession call a 'fender bender of the ears.' '{misheard}' versus '{real}' — not catastrophic, but still negligent. {artist_line}We seek a proportionate response.",
+  "The defendant heard '{misheard}' when the lyric was '{real}'. Honestly? I've heard worse. But I took an oath to prosecute ALL lyrical crimes, not just the fun ones.",
+  "I want the jury to know: I take no pleasure in this case. '{misheard}' for '{real}' is a minor infraction. {artist_line}But if we let the small ones slide, where does it end?",
+  "The prosecution presents this case with measured disappointment. '{misheard}' isn't wildly different from '{real}', but it IS different. And different is wrong. {artist_line}That's the whole point of lyrics.",
 ];
 
-const EVIDENCE: readonly string[] = [
-  "Exhibit A: {artist} recorded \"{real}\" for \"{song}.\" Exhibit B: The defendant's brain translated this to \"{misheard}.\" I rest my case.",
-  "The forensic audio analysis is clear: at no point in \"{song}\" does {artist} say anything remotely resembling \"{misheard}.\" The actual lyric, \"{real},\" is perfectly enunciated.",
-  "I've consulted three linguists, two audiologists, and one very confused music teacher. NONE of them can explain how \"{real}\" becomes \"{misheard}.\"",
-  "Let me play this back in slow motion. *dramatically gestures* \"{real}\" — that's what {artist} sang. NOT \"{misheard}.\" Not even CLOSE.",
-  "We obtained the original studio recording of \"{song}.\" We ran it through spectral analysis. The words \"{real}\" are CRYSTAL clear. \"{misheard}\" appears NOWHERE.",
-  "The defendant has been singing \"{misheard}\" — possibly in PUBLIC — when the lyric is clearly \"{real}.\" Think about the innocent bystanders.",
-  "I present to the court a side-by-side comparison: what {artist} wrote for \"{song}\" vs. what the defendant's ears decided to freelance. It's not pretty.",
-  "Your Honor, I have a sworn statement from a certified music expert who confirms that \"{real}\" and \"{misheard}\" are, quote, 'not even in the same zip code.'",
-  "The defendant would have us believe that {artist} — {artist}! — wrote \"{misheard}\" in \"{song}.\" This is an insult to the artist's craft.",
-  "Exhibit C: a recording of the defendant confidently singing \"{misheard}\" at a social gathering while everyone else sang \"{real}.\" The secondhand embarrassment was measurable.",
-  "I've compiled a timeline. The defendant has presumably been mishearing \"{real}\" as \"{misheard}\" for an UNKNOWN number of years. The damage is incalculable.",
-  "The prosecution enters into evidence the liner notes of \"{song}\" which CLEARLY print \"{real}\" — not whatever fever dream \"{misheard}\" came from.",
+const MID_TEMPLATES: readonly string[] = [
+  "Your Honor, the defendant looked at the lyrics '{real}' — words with MEANING — and somehow extracted '{misheard}' from them. This isn't a mishearing. This is auditory vandalism. {artist_line}The prosecution is appalled.",
+  "Members of the jury, I want you to really sit with this: '{misheard}'. That's what the defendant heard. The ACTUAL lyric is '{real}'. These are not even in the same NEIGHBORHOOD. {artist_line}I rest my case.",
+  "I have consulted with audio experts, linguists, and one very confused speech therapist. None of them can explain the journey from '{real}' to '{misheard}'. {artist_line}The defendant's ears are a mystery science cannot solve.",
+  "The prosecution presents Exhibit A: the lyric '{real}'. And Exhibit B: what the defendant claims to have heard — '{misheard}'. Your Honor, the distance between these two exhibits is measurable in LIGHT YEARS.",
+  "Let me paint a picture. Someone sits down. A song plays. The words '{real}' come through the speakers, clear as day. And the defendant's brain decides, 'You know what? I think they said {misheard}.' {artist_line}THAT is what we're dealing with.",
+  "I've been a prosecutor for fifteen years. I've seen crimes of passion, crimes of opportunity. But this? '{misheard}' instead of '{real}'? This is a crime of the IMAGINATION. {artist_line}The defendant's imagination should be charged as a co-conspirator.",
+  "Your Honor, may I direct the jury's attention to how many words '{misheard}' and '{real}' have in common? I'll save you the count: not enough. Not NEARLY enough. {artist_line}The prosecution demands accountability.",
+  "The defendant had every tool available — lyrics websites, liner notes, basic human hearing. And yet: '{misheard}'. The real lyric, '{real}', was RIGHT THERE. {artist_line}This is negligence, plain and simple.",
+  "I don't want to be dramatic. But '{misheard}' instead of '{real}' is the kind of mishearing that keeps me up at night. {artist_line}The prosecution seeks justice not just for the lyrics, but for everyone who had to hear the defendant sing this version.",
 ];
 
-const CLOSINGS: readonly string[] = [
-  "The prosecution rests. And honestly, I need to rest too after hearing that mishearing.",
-  "I implore the jury: send a message. This kind of lyrical negligence cannot go unpunished.",
-  "In conclusion, the defendant heard what they wanted to hear, and what they wanted to hear was WRONG.",
-  "The evidence is overwhelming. The defendant's ears have been weighed, measured, and found wanting.",
-  "I trust the jury will do the right thing. {artist} deserves justice. \"{song}\" deserves justice. MUSIC deserves justice.",
-  "Thank you, Your Honor. I'll be available after the trial for anyone who needs help processing what they've just heard.",
-  "The prosecution rests its case, though my faith in humanity does not.",
-  "Members of the jury, you have heard the evidence. Now hear the correct lyrics one more time: \"{real}.\" NOT \"{misheard}.\" Thank you.",
-  "I close by asking: if we let this slide, what's next? Where does the mishearing END?",
-  "Your Honor, the prosecution has nothing further. The lyrics have said everything that needed to be said — clearly, apparently, to everyone except the defendant.",
-  "The prosecution rests. I'd like to bill the defendant for the emotional distress this case has caused me personally.",
+const HIGH_TEMPLATES: readonly string[] = [
+  "Your Honor, what the defendant has done to these lyrics should be classified as a war crime. '{misheard}' instead of '{real}'?! {artist_line}I am SHAKING. The prosecution demands the maximum sentence.",
+  "I have stared into the abyss, Your Honor. The abyss is '{misheard}' where '{real}' should be. {artist_line}I move to have the defendant's ears confiscated as evidence and never returned.",
+  "Ladies and gentlemen of the jury, what you are about to comprehend will haunt you. The defendant — a person with allegedly FUNCTIONING ears — heard '{misheard}'. THE LYRIC IS '{real}'. {artist_line}I need everyone to understand the gravity of this.",
+  "In my entire career, I have never — NEVER — encountered a mishearing this catastrophic. '{misheard}' and '{real}' don't share a SINGLE redeeming similarity. {artist_line}The prosecution is calling for an immediate and severe verdict.",
+  "Your Honor, I'm going to need a moment. *collects self* The defendant heard '{misheard}'. The lyric is '{real}'. These two phrases exist in ENTIRELY different dimensions of reality. {artist_line}This is not a mishearing. This is an ALTERNATE UNIVERSE.",
+  "I want the record to show that I attempted to read this case file THREE times before accepting it was real. '{misheard}' in place of '{real}'. {artist_line}The prosecution believes this case may require setting a new legal precedent.",
+  "If there were a scale of one to ten for lyrical destruction, this would break it. '{misheard}' for '{real}'? {artist_line}The prosecution requests the jury show NO mercy. None. Zero. The defendant knew what they were doing.",
+  "Your Honor, I've prepared a twelve-point presentation, but honestly? Just look at '{misheard}' and then look at '{real}'. LOOK AT THEM. {artist_line}The evidence speaks — no, it SCREAMS — for itself.",
+  "This is the worst case of auditory malpractice I have ever prosecuted. '{misheard}' bears absolutely NO resemblance to '{real}'. {artist_line}I am formally requesting that the defendant be banned from all musical events indefinitely.",
+  "I've seen mishearings. I've prosecuted mishearings. But '{misheard}' instead of '{real}'? This isn't a mishearing — this is an ACT OF AGGRESSION against the English language AND music simultaneously. {artist_line}Maximum sentence. Nothing less.",
 ];
 
-export function generateProsecution(caseData: CaseData): ProsecutionArgument {
-  const character = generateProsecutorName();
-  const slots: TemplateSlots = {
-    misheard: caseData.misheardLyric,
-    real: caseData.realLyric,
-    song: caseData.songTitle,
-    artist: caseData.artist,
-  };
+function buildVars(input: CaseInput): Record<string, string> {
+  const artistLine = input.artist
+    ? `This was done to the work of ${input.artist}. `
+    : "";
 
   return {
-    character,
-    opening: fillTemplate(pickRandom(OPENINGS), slots),
-    evidence: fillTemplate(pickRandom(EVIDENCE), slots),
-    closing: fillTemplate(pickRandom(CLOSINGS), slots),
+    misheard: input.misheard,
+    real: input.real,
+    artist_line: artistLine,
+    artist: input.artist ?? "the artist",
   };
+}
+
+function pickTier(severity: number): readonly string[] {
+  if (severity >= 7) return HIGH_TEMPLATES;
+  if (severity >= 4) return MID_TEMPLATES;
+  return LOW_TEMPLATES;
+}
+
+export function generateProsecution(
+  input: CaseInput,
+  severity: number,
+  seed: number
+): string {
+  const rng = seedableRandom(seed + 5381);
+  const tier = pickTier(severity);
+  const template = pickRandom(tier, rng);
+  return fillTemplate(template, buildVars(input));
 }

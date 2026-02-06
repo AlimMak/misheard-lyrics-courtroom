@@ -1,48 +1,53 @@
-export interface TemplateSlots {
-  readonly misheard: string;
-  readonly real: string;
-  readonly song: string;
-  readonly artist: string;
+/**
+ * Seedable PRNG using mulberry32 algorithm.
+ * Returns a function that produces deterministic [0, 1) values.
+ */
+export function seedableRandom(seed: number): () => number {
+  let state = seed | 0;
+  return () => {
+    state = (state + 0x6d2b79f5) | 0;
+    let t = Math.imul(state ^ (state >>> 15), 1 | state);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
 }
 
-export function fillTemplate(
-  template: string,
-  slots: TemplateSlots
-): string {
-  return template
-    .replace(/\{misheard\}/g, slots.misheard)
-    .replace(/\{real\}/g, slots.real)
-    .replace(/\{song\}/g, slots.song)
-    .replace(/\{artist\}/g, slots.artist);
+/**
+ * Pick a single random item from an array using the provided PRNG.
+ */
+export function pickRandom<T>(arr: readonly T[], rng: () => number): T {
+  return arr[Math.floor(rng() * arr.length)];
 }
 
-export function pickRandom<T>(items: readonly T[]): T {
-  return items[Math.floor(Math.random() * items.length)];
-}
+/**
+ * Pick `count` unique items from an array using Fisher-Yates shuffle.
+ */
+export function pickMultiple<T>(
+  arr: readonly T[],
+  count: number,
+  rng: () => number
+): T[] {
+  const copy = [...arr];
+  const result: T[] = [];
+  const n = Math.min(count, copy.length);
 
-export function pickWeighted<T>(
-  items: readonly T[],
-  weights: readonly number[]
-): T {
-  const totalWeight = weights.reduce((sum, w) => sum + w, 0);
-  let random = Math.random() * totalWeight;
-
-  for (let i = 0; i < items.length; i++) {
-    random -= weights[i];
-    if (random <= 0) return items[i];
+  for (let i = 0; i < n; i++) {
+    const j = i + Math.floor(rng() * (copy.length - i));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+    result.push(copy[i]);
   }
 
-  return items[items.length - 1];
+  return result;
 }
 
-export function pickMultiple<T>(
-  items: readonly T[],
-  count: number
-): readonly T[] {
-  const shuffled = [...items].sort(() => Math.random() - 0.5);
-  return shuffled.slice(0, count);
-}
-
-export function generateId(): string {
-  return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+/**
+ * Replace {key} placeholders in a template string with values from vars.
+ */
+export function fillTemplate(
+  template: string,
+  vars: Record<string, string>
+): string {
+  return template.replace(/\{(\w+)\}/g, (match, key: string) =>
+    key in vars ? vars[key] : match
+  );
 }
