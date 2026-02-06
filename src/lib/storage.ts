@@ -1,4 +1,4 @@
-import { TrialResult } from "./types";
+import { ShameEntry } from "./types";
 import { STORAGE_KEYS } from "./constants";
 
 function safeGetItem(key: string): string | null {
@@ -20,8 +20,8 @@ function safeSetItem(key: string, value: string): boolean {
   }
 }
 
-export function loadTrialHistory(): readonly TrialResult[] {
-  const raw = safeGetItem(STORAGE_KEYS.trialHistory);
+export function getHallOfShame(): ShameEntry[] {
+  const raw = safeGetItem(STORAGE_KEYS.hallOfShame);
   if (!raw) return [];
 
   try {
@@ -32,13 +32,30 @@ export function loadTrialHistory(): readonly TrialResult[] {
   }
 }
 
-export function saveTrialResult(result: TrialResult): readonly TrialResult[] {
-  const history = loadTrialHistory();
-  const updated = [result, ...history];
-  safeSetItem(STORAGE_KEYS.trialHistory, JSON.stringify(updated));
-  return updated;
+export function addToHallOfShame(entry: ShameEntry): void {
+  const current = getHallOfShame();
+  const updated = [entry, ...current];
+  safeSetItem(STORAGE_KEYS.hallOfShame, JSON.stringify(updated));
 }
 
-export function clearTrialHistory(): void {
-  safeSetItem(STORAGE_KEYS.trialHistory, JSON.stringify([]));
+export function getSubmissionCount(): number {
+  const raw = safeGetItem(STORAGE_KEYS.submissionCount);
+  if (!raw) return 0;
+
+  try {
+    const count = JSON.parse(raw);
+    return typeof count === "number" ? count : 0;
+  } catch {
+    return 0;
+  }
+}
+
+export function incrementSubmissionCount(): void {
+  const current = getSubmissionCount();
+  safeSetItem(STORAGE_KEYS.submissionCount, JSON.stringify(current + 1));
+}
+
+export function clearAll(): void {
+  safeSetItem(STORAGE_KEYS.hallOfShame, JSON.stringify([]));
+  safeSetItem(STORAGE_KEYS.submissionCount, JSON.stringify(0));
 }
