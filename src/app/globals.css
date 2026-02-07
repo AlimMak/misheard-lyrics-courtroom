@@ -41,18 +41,73 @@ body {
   }
 }
 
-@keyframes gavel {
-  0%, 100% {
-    transform: rotate(0deg);
+@keyframes gavelSlam {
+  0% {
+    transform: rotate(-45deg) translateY(-10px);
   }
-  25% {
-    transform: rotate(-20deg);
+  60% {
+    transform: rotate(0deg) translateY(0);
   }
-  50% {
-    transform: rotate(10deg);
+  70% {
+    transform: rotate(-3deg) translateY(-2px);
   }
-  75% {
-    transform: rotate(-5deg);
+  85% {
+    transform: rotate(1deg) translateY(0);
+  }
+  100% {
+    transform: rotate(0deg) translateY(0);
+  }
+}
+
+@keyframes screenShake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-3px);
+  }
+  40% {
+    transform: translateX(3px);
+  }
+  60% {
+    transform: translateX(-2px);
+  }
+  80% {
+    transform: translateX(1px);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -60,6 +115,22 @@ body {
   animation: fadeIn 0.4s ease-out both;
 }
 
-.animate-gavel {
-  animation: gavel 0.6s ease-in-out;
+.animate-gavelSlam {
+  animation: gavelSlam 1.2s ease-out both;
+}
+
+.animate-screenShake {
+  animation: screenShake 0.3s ease-out both;
+}
+
+.animate-slideLeft {
+  animation: slideInLeft 0.4s ease-out both;
+}
+
+.animate-slideRight {
+  animation: slideInRight 0.4s ease-out both;
+}
+
+.animate-slideUp {
+  animation: slideInUp 0.4s ease-out both;
 }
