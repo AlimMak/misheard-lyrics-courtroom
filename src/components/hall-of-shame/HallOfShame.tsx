@@ -1,68 +1,59 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { TrialResult } from "../../lib/types";
-import { loadTrialHistory, clearTrialHistory } from "../../lib/storage";
+import { ShameEntry } from "../../lib/types";
 import { ShameCard } from "./ShameCard";
-import { Badge } from "../shared/Badge";
 
 interface HallOfShameProps {
-  readonly onBack: () => void;
+  readonly entries: readonly ShameEntry[];
+  readonly onClear: () => void;
 }
 
-export function HallOfShame({ onBack }: HallOfShameProps) {
-  const [history, setHistory] = useState<readonly TrialResult[]>([]);
-
-  useEffect(() => {
-    setHistory(loadTrialHistory());
-  }, []);
-
+export function HallOfShame({ entries, onClear }: HallOfShameProps) {
   function handleClear() {
-    clearTrialHistory();
-    setHistory([]);
+    if (window.confirm("Clear all records? This cannot be undone.")) {
+      onClear();
+    }
   }
 
   return (
     <div className="animate-fadeIn">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-2xl font-serif text-amber-200">
-            Hall of Shame
-          </h2>
-          <div className="flex items-center gap-2 mt-1">
-            <span className="text-amber-400/60 text-sm">
-              {history.length} case{history.length !== 1 ? "s" : ""} on record
-            </span>
-            {history.length > 0 && <Badge caseCount={history.length} />}
-          </div>
-        </div>
-        <button
-          onClick={onBack}
-          className="px-4 py-2 border border-amber-800 text-amber-400 hover:bg-amber-900/30 rounded font-serif text-sm transition-colors cursor-pointer"
-        >
-          &larr; Back
-        </button>
+      {/* Header */}
+      <div className="text-center mb-6">
+        <h2 className="text-xl font-serif font-bold text-amber-200 tracking-wider uppercase">
+          Hall of Shame
+        </h2>
+        <p className="text-xs text-amber-500/60 tracking-widest uppercase mt-1">
+          Public Record of Auditory Crimes
+        </p>
+        {entries.length > 0 && (
+          <p className="text-amber-600/40 text-xs mt-2">
+            {entries.length} case{entries.length !== 1 ? "s" : ""} on record
+          </p>
+        )}
       </div>
 
-      {history.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-amber-400/50 font-serif">
-            No cases on record. File your first case to begin.
+      {/* Content */}
+      {entries.length === 0 ? (
+        <div className="text-center py-16">
+          <p className="text-amber-400/40 font-serif text-lg mb-2">
+            No Cases on Record
+          </p>
+          <p className="text-amber-500/30 text-sm max-w-xs mx-auto">
+            The public is suspiciously well-hearing. File a case to get started.
           </p>
         </div>
       ) : (
         <>
-          <div className="grid gap-3">
-            {history.map((trial, i) => (
-              <ShameCard key={`${trial.caseData.id}-${i}`} trial={trial} />
+          <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+            {entries.map((entry, i) => (
+              <ShameCard key={entry.id} entry={entry} rank={i + 1} />
             ))}
           </div>
+
           <div className="mt-6 text-center">
             <button
               onClick={handleClear}
-              className="text-xs text-red-400/60 hover:text-red-400 transition-colors cursor-pointer"
+              className="text-xs text-red-400/50 hover:text-red-400 transition-colors cursor-pointer"
             >
-              Clear all records
+              Clear All Records
             </button>
           </div>
         </>
