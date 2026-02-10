@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+:root {
+  --wood-dark: #1c1917;
+  --parchment: #fde68a;
+  --gold: #d97706;
+  --blood-red: #8b0000;
+  --navy: #1b3a5c;
+}
+
 /* Courtroom theme */
 body {
   background: radial-gradient(ellipse at top, #1c1917 0%, #0c0a09 100%);
@@ -138,4 +146,16 @@ body {
 
 .animate-slideUp {
   animation: slideInUp 0.4s ease-out both;
+}
+
+/* Custom scrollbar */
+.court-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.court-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.court-scroll::-webkit-scrollbar-thumb {
+  background: rgba(217, 119, 6, 0.3);
+  border-radius: 2px;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { BadgeTier } from "../lib/types";
 import { getSubmissionCount } from "../lib/storage";
 import { BADGE_TIERS } from "../lib/constants";
@@ -21,5 +21,9 @@ export function useBadge() {
 
   const tier = findTier(count);
 
-  return { count, tier, refresh: () => setCount(getSubmissionCount()) } as const;
+  const refresh = useCallback(() => {
+    setCount(getSubmissionCount());
+  }, []);
+
+  return { count, tier, refresh } as const;
 }
