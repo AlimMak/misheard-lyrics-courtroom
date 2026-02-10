@@ -1,4 +1,4 @@
-import { TrialResult } from "../../lib/types";
+import { TrialPhase, TrialResult } from "../../lib/types";
 import { JudgePhase } from "./JudgePhase";
 import { ProsecutorPhase } from "./ProsecutorPhase";
 import { DefensePhase } from "./DefensePhase";
@@ -6,54 +6,63 @@ import { JuryPhase } from "./JuryPhase";
 import { VerdictReveal } from "./VerdictReveal";
 
 interface TrialFlowProps {
-  readonly phase: "judge-intro" | "prosecution" | "defense" | "jury" | "verdict";
-  readonly trialResult: TrialResult;
-  readonly onAdvance: () => void;
-  readonly onNewCase: () => void;
-  readonly onViewHistory: () => void;
+  readonly phase: TrialPhase;
+  readonly trialData: TrialResult;
+  readonly score: number;
+  readonly onNext: () => void;
+  readonly onSave: () => void;
+  readonly onReset: () => void;
 }
 
 export function TrialFlow({
   phase,
-  trialResult,
-  onAdvance,
-  onNewCase,
-  onViewHistory,
+  trialData,
+  score,
+  onNext,
+  onSave,
+  onReset,
 }: TrialFlowProps) {
   switch (phase) {
-    case "judge-intro":
+    case "judge":
       return (
-        <JudgePhase judge={trialResult.judge} onContinue={onAdvance} />
+        <JudgePhase
+          name={trialData.judgeName}
+          intro={trialData.judgeIntro}
+          onComplete={onNext}
+        />
       );
-    case "prosecution":
+    case "prosecutor":
       return (
         <ProsecutorPhase
-          prosecution={trialResult.prosecution}
-          onContinue={onAdvance}
+          argument={trialData.prosecution}
+          onComplete={onNext}
         />
       );
     case "defense":
       return (
         <DefensePhase
-          defense={trialResult.defense}
-          onContinue={onAdvance}
+          argument={trialData.defense}
+          onComplete={onNext}
         />
       );
     case "jury":
       return (
         <JuryPhase
-          jurors={trialResult.jurors}
-          onContinue={onAdvance}
+          jurorNames={trialData.jurorNames}
+          takes={trialData.jurors}
+          onComplete={onNext}
         />
       );
     case "verdict":
       return (
         <VerdictReveal
-          verdict={trialResult.verdict}
-          caseData={trialResult.caseData}
-          onNewCase={onNewCase}
-          onViewHistory={onViewHistory}
+          verdict={trialData.verdict}
+          score={score}
+          onSave={onSave}
+          onReset={onReset}
         />
       );
+    default:
+      return null;
   }
 }

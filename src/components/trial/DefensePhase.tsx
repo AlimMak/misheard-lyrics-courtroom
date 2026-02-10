@@ -1,40 +1,61 @@
-import { DefenseArgument } from "../../lib/types";
+"use client";
+
+import { useEffect, useRef, useState } from "react";
 import { PhaseTransition } from "../shared/PhaseTransition";
+import { useTypewriter } from "../../hooks/useTypewriter";
 
 interface DefensePhaseProps {
-  readonly defense: DefenseArgument;
-  readonly onContinue: () => void;
+  readonly argument: string;
+  readonly onComplete: () => void;
 }
 
-export function DefensePhase({ defense, onContinue }: DefensePhaseProps) {
+const AUTO_ADVANCE_MS = 2000;
+
+export function DefensePhase({ argument, onComplete }: DefensePhaseProps) {
+  const { displayText, isComplete } = useTypewriter(argument);
+  const [canContinue, setCanContinue] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (!isComplete) return;
+
+    timerRef.current = setTimeout(() => {
+      setCanContinue(true);
+    }, AUTO_ADVANCE_MS);
+
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [isComplete]);
+
+  useEffect(() => {
+    if (canContinue) onComplete();
+  }, [canContinue, onComplete]);
+
   return (
-    <PhaseTransition phase="defense" onContinue={onContinue}>
-      <div className="text-center mb-4">
-        <span className="text-blue-400/70 text-xs uppercase tracking-widest">
-          {defense.character.title}
-        </span>
-        <h3 className="text-xl font-serif text-blue-300">
-          {defense.character.name}
+    <PhaseTransition direction="right">
+      <div className="bg-blue-950/20 border border-[#1B3A5C]/30 rounded-lg p-6">
+        <h3 className="text-lg font-serif font-bold text-[#1B3A5C] uppercase tracking-wider mb-4">
+          The Defense Responds:
         </h3>
-      </div>
 
-      <div className="space-y-4">
-        <blockquote className="border-l-2 border-blue-800 pl-4 text-amber-100/90 italic font-serif leading-relaxed">
-          &ldquo;{defense.opening}&rdquo;
-        </blockquote>
+        <p className="text-amber-100/90 font-serif leading-relaxed min-h-[3rem]">
+          &ldquo;{displayText}
+          {!isComplete && <span className="animate-pulse">|</span>}
+          {isComplete && "&rdquo;"}
+        </p>
 
-        <div className="bg-blue-950/20 rounded p-4 border border-blue-900/20">
-          <h4 className="text-blue-400 text-xs uppercase tracking-widest mb-2">
-            Defense Argument
-          </h4>
-          <p className="text-amber-200/80 text-sm leading-relaxed">
-            {defense.argument}
-          </p>
-        </div>
-
-        <blockquote className="border-l-2 border-blue-800 pl-4 text-amber-100/90 italic font-serif leading-relaxed">
-          &ldquo;{defense.closing}&rdquo;
-        </blockquote>
+        {isComplete && !canContinue && (
+          <button
+            onClick={() => {
+              if (timerRef.current) clearTimeout(timerRef.current);
+              setCanContinue(true);
+            }}
+            className="mt-4 w-full text-center text-amber-500/50 text-sm hover:text-amber-400 transition-colors animate-fadeIn cursor-pointer"
+          >
+            Click to continue
+          </button>
+        )}
       </div>
     </PhaseTransition>
   );

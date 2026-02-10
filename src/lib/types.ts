@@ -25,9 +25,11 @@ export interface Verdict {
 }
 
 export interface TrialResult {
+  readonly judgeName: string;
   readonly judgeIntro: string;
   readonly prosecution: string;
   readonly defense: string;
+  readonly jurorNames: readonly [string, string, string];
   readonly jurors: readonly [string, string, string];
   readonly verdict: Verdict;
 }

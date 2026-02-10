@@ -9,6 +9,7 @@ import { generateProsecution } from "../lib/generators/prosecutor";
 import { generateDefense } from "../lib/generators/defense";
 import { generateJurorTakes } from "../lib/generators/jury";
 import { generateVerdict } from "../lib/generators/verdict";
+import { generateJudgeName, generateJurorNames } from "../lib/generators/names";
 
 function hashString(str: string): number {
   let hash = 0;
@@ -75,9 +76,11 @@ export function useTrialFlow() {
       const seed = hashString(input.misheard + input.real);
 
       const trialData: TrialResult = {
+        judgeName: generateJudgeName(seed + 5381),
         judgeIntro: generateJudgeIntro(input, seed),
         prosecution: generateProsecution(input, score, seed),
         defense: generateDefense(input, score, seed),
+        jurorNames: generateJurorNames(seed + 7919),
         jurors: generateJurorTakes(input, score, seed),
         verdict: generateVerdict(input, score),
       };

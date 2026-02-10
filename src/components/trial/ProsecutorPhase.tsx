@@ -1,43 +1,61 @@
-import { ProsecutionArgument } from "../../lib/types";
+"use client";
+
+import { useEffect, useRef, useState } from "react";
 import { PhaseTransition } from "../shared/PhaseTransition";
+import { useTypewriter } from "../../hooks/useTypewriter";
 
 interface ProsecutorPhaseProps {
-  readonly prosecution: ProsecutionArgument;
-  readonly onContinue: () => void;
+  readonly argument: string;
+  readonly onComplete: () => void;
 }
 
-export function ProsecutorPhase({
-  prosecution,
-  onContinue,
-}: ProsecutorPhaseProps) {
+const AUTO_ADVANCE_MS = 2000;
+
+export function ProsecutorPhase({ argument, onComplete }: ProsecutorPhaseProps) {
+  const { displayText, isComplete } = useTypewriter(argument);
+  const [canContinue, setCanContinue] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (!isComplete) return;
+
+    timerRef.current = setTimeout(() => {
+      setCanContinue(true);
+    }, AUTO_ADVANCE_MS);
+
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [isComplete]);
+
+  useEffect(() => {
+    if (canContinue) onComplete();
+  }, [canContinue, onComplete]);
+
   return (
-    <PhaseTransition phase="prosecution" onContinue={onContinue}>
-      <div className="text-center mb-4">
-        <span className="text-red-400/70 text-xs uppercase tracking-widest">
-          {prosecution.character.title}
-        </span>
-        <h3 className="text-xl font-serif text-red-300">
-          {prosecution.character.name}
+    <PhaseTransition direction="left">
+      <div className="bg-red-950/20 border border-[#8B0000]/30 rounded-lg p-6">
+        <h3 className="text-lg font-serif font-bold text-[#8B0000] uppercase tracking-wider mb-4">
+          The Prosecution Argues:
         </h3>
-      </div>
 
-      <div className="space-y-4">
-        <blockquote className="border-l-2 border-red-800 pl-4 text-amber-100/90 italic font-serif leading-relaxed">
-          &ldquo;{prosecution.opening}&rdquo;
-        </blockquote>
+        <p className="text-amber-100/90 font-serif leading-relaxed min-h-[3rem]">
+          &ldquo;{displayText}
+          {!isComplete && <span className="animate-pulse">|</span>}
+          {isComplete && "&rdquo;"}
+        </p>
 
-        <div className="bg-red-950/20 rounded p-4 border border-red-900/20">
-          <h4 className="text-red-400 text-xs uppercase tracking-widest mb-2">
-            Evidence Presented
-          </h4>
-          <p className="text-amber-200/80 text-sm leading-relaxed">
-            {prosecution.evidence}
-          </p>
-        </div>
-
-        <blockquote className="border-l-2 border-red-800 pl-4 text-amber-100/90 italic font-serif leading-relaxed">
-          &ldquo;{prosecution.closing}&rdquo;
-        </blockquote>
+        {isComplete && !canContinue && (
+          <button
+            onClick={() => {
+              if (timerRef.current) clearTimeout(timerRef.current);
+              setCanContinue(true);
+            }}
+            className="mt-4 w-full text-center text-amber-500/50 text-sm hover:text-amber-400 transition-colors animate-fadeIn cursor-pointer"
+          >
+            Click to continue
+          </button>
+        )}
       </div>
     </PhaseTransition>
   );
