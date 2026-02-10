@@ -44,18 +44,23 @@ body {
 @keyframes gavelSlam {
   0% {
     transform: rotate(-45deg) translateY(-10px);
+    filter: drop-shadow(0 0 0 transparent);
   }
   60% {
     transform: rotate(0deg) translateY(0);
+    filter: drop-shadow(0 4px 12px rgba(217, 119, 6, 0.6));
   }
   70% {
     transform: rotate(-3deg) translateY(-2px);
+    filter: drop-shadow(0 2px 8px rgba(217, 119, 6, 0.4));
   }
   85% {
     transform: rotate(1deg) translateY(0);
+    filter: drop-shadow(0 1px 4px rgba(217, 119, 6, 0.2));
   }
   100% {
     transform: rotate(0deg) translateY(0);
+    filter: drop-shadow(0 0 0 transparent);
   }
 }
 

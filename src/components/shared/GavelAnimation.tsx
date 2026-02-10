@@ -36,7 +36,7 @@ export function GavelAnimation({ animate, onComplete }: GavelAnimationProps) {
         aria-label="Gavel"
         onAnimationEnd={onComplete}
       >
-        &#x2696;
+        &#x1F528;
       </span>
     </div>
   );
