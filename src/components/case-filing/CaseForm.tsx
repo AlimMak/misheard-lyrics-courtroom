@@ -2,7 +2,11 @@
 
 import { useState } from "react";
 import { CaseInput } from "../../lib/types";
-import { MAX_LYRIC_LENGTH, MAX_ARTIST_LENGTH } from "../../lib/constants";
+import {
+  MAX_LYRIC_LENGTH,
+  MAX_ARTIST_LENGTH,
+  MIN_LYRIC_LENGTH,
+} from "../../lib/constants";
 import { CourtSeal } from "../shared/CourtSeal";
 
 interface CaseFormProps {
@@ -21,7 +25,15 @@ export function CaseForm({ onSubmit }: CaseFormProps) {
   const [artist, setArtist] = useState("");
   const [caseNumber] = useState(generateCaseNumber);
 
-  const canSubmit = misheard.trim().length > 0 && real.trim().length > 0;
+  const misheardTrimmed = misheard.trim();
+  const realTrimmed = real.trim();
+  const misheardTooShort =
+    misheardTrimmed.length > 0 && misheardTrimmed.length < MIN_LYRIC_LENGTH;
+  const realTooShort =
+    realTrimmed.length > 0 && realTrimmed.length < MIN_LYRIC_LENGTH;
+  const canSubmit =
+    misheardTrimmed.length >= MIN_LYRIC_LENGTH &&
+    realTrimmed.length >= MIN_LYRIC_LENGTH;
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -63,6 +75,11 @@ export function CaseForm({ onSubmit }: CaseFormProps) {
             className="court-input resize-none"
             required
           />
+          {misheardTooShort && (
+            <p className="text-red-400/70 text-xs mt-1 font-serif">
+              At least {MIN_LYRIC_LENGTH} characters required
+            </p>
+          )}
         </Field>
 
         <Field label='EXHIBIT B — What was actually sung:'>
@@ -75,6 +92,11 @@ export function CaseForm({ onSubmit }: CaseFormProps) {
             className="court-input resize-none"
             required
           />
+          {realTooShort && (
+            <p className="text-red-400/70 text-xs mt-1 font-serif">
+              At least {MIN_LYRIC_LENGTH} characters required
+            </p>
+          )}
         </Field>
 
         <Field label="ALLEGED ARTIST / SONG (optional):">

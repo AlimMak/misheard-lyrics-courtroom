@@ -40,3 +40,4 @@ export const STORAGE_KEYS = {
 
 export const MAX_LYRIC_LENGTH = 200;
 export const MAX_ARTIST_LENGTH = 100;
+export const MIN_LYRIC_LENGTH = 3;

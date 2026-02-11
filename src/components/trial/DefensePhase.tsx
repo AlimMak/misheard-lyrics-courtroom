@@ -12,7 +12,7 @@ interface DefensePhaseProps {
 const AUTO_ADVANCE_MS = 2000;
 
 export function DefensePhase({ argument, onComplete }: DefensePhaseProps) {
-  const { displayText, isComplete } = useTypewriter(argument);
+  const { displayText, isComplete, skipToEnd } = useTypewriter(argument);
   const [canContinue, setCanContinue] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -39,9 +39,15 @@ export function DefensePhase({ argument, onComplete }: DefensePhaseProps) {
           The Defense Responds:
         </h3>
 
-        <p className="text-amber-100/90 font-serif leading-relaxed min-h-[3rem]">
+        <p
+          className={`text-amber-100/90 font-serif leading-relaxed min-h-[3rem] ${
+            !isComplete ? "cursor-pointer" : ""
+          }`}
+          onClick={!isComplete ? skipToEnd : undefined}
+          title={!isComplete ? "Click to skip" : undefined}
+        >
           &ldquo;{displayText}
-          {!isComplete && <span className="animate-pulse">|</span>}
+          {!isComplete && <span className="animate-cursorBlink">|</span>}
           {isComplete && "&rdquo;"}
         </p>
 
@@ -51,7 +57,7 @@ export function DefensePhase({ argument, onComplete }: DefensePhaseProps) {
               if (timerRef.current) clearTimeout(timerRef.current);
               setCanContinue(true);
             }}
-            className="mt-4 w-full text-center text-amber-500/50 text-sm hover:text-amber-400 transition-colors animate-fadeIn cursor-pointer"
+            className="mt-4 w-full text-center text-amber-500/50 text-sm hover:text-amber-400 transition-colors animate-delayedFadeIn cursor-pointer"
           >
             Click to continue
           </button>

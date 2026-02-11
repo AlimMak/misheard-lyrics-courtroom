@@ -45,8 +45,10 @@ export function JuryPhase({ jurorNames, takes, onComplete }: JuryPhaseProps) {
           {jurorNames.map((name, i) => (
             <div
               key={i}
-              className={`bg-amber-950/30 border border-amber-900/20 rounded-lg p-4 transition-opacity duration-300 ${
-                i < visibleCount ? "opacity-100" : "opacity-0"
+              className={`bg-amber-950/30 border border-amber-900/20 rounded-lg p-4 transition-all duration-300 ${
+                i < visibleCount
+                  ? "opacity-100 hover:translate-y-[-2px] hover:shadow-lg hover:border-amber-800/40"
+                  : "opacity-0"
               }`}
             >
               {/* Juror name */}
@@ -67,8 +69,11 @@ export function JuryPhase({ jurorNames, takes, onComplete }: JuryPhaseProps) {
 
         {visibleCount >= JUROR_COUNT && (
           <button
-            onClick={onComplete}
-            className="mt-4 w-full text-center text-amber-500/50 text-sm hover:text-amber-400 transition-colors animate-fadeIn cursor-pointer"
+            onClick={() => {
+              if (timerRef.current) clearTimeout(timerRef.current);
+              onComplete();
+            }}
+            className="mt-4 w-full text-center text-amber-500/50 text-sm hover:text-amber-400 transition-colors animate-delayedFadeIn cursor-pointer"
           >
             Click to continue
           </button>

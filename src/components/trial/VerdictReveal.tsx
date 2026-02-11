@@ -36,9 +36,9 @@ export function VerdictReveal({
       {gavelDone && (
         <div className="animate-fadeIn">
           {/* Big score */}
-          <div className="mt-4 mb-2">
+          <div className="mt-6 mb-4">
             <span
-              className="text-6xl font-bold font-serif"
+              className="text-6xl font-bold font-serif animate-scorePop inline-block"
               style={{ color }}
             >
               {score}
@@ -48,7 +48,7 @@ export function VerdictReveal({
 
           {/* Verdict title */}
           <h2
-            className="text-2xl font-serif font-bold mt-3 mb-2"
+            className="text-2xl font-serif font-bold mb-2"
             style={{ color }}
           >
             {verdict.title}

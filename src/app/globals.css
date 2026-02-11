@@ -92,31 +92,53 @@ body {
 }
 
 @keyframes slideInLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
 }
 
 @keyframes slideInRight {
-  from {
-    opacity: 0;
-    transform: translateX(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
 }
 
 @keyframes slideInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scorePop {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.12);
+  }
+  80% {
+    transform: scale(0.95);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes cursorBlink {
+  0%,
+  100% {
+    opacity: 1;
+    color: #d97706;
+  }
+  50% {
+    opacity: 0.3;
+    color: #92400e;
+  }
+}
+
+@keyframes delayedFadeIn {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -146,6 +168,19 @@ body {
 
 .animate-slideUp {
   animation: slideInUp 0.4s ease-out both;
+}
+
+.animate-scorePop {
+  animation: scorePop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.animate-cursorBlink {
+  animation: cursorBlink 1s step-end infinite;
+}
+
+.animate-delayedFadeIn {
+  opacity: 0;
+  animation: delayedFadeIn 0.4s ease-out 0.6s both;
 }
 
 /* Custom scrollbar */

@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useRef } from "react";
 import { TrialPhase, TrialResult } from "../../lib/types";
 import { JudgePhase } from "./JudgePhase";
 import { ProsecutorPhase } from "./ProsecutorPhase";
@@ -12,6 +15,8 @@ interface TrialFlowProps {
   readonly onNext: () => void;
   readonly onSave: () => void;
   readonly onReset: () => void;
+  readonly onSkipToVerdict: () => void;
+  readonly onAbandon: () => void;
 }
 
 export function TrialFlow({
@@ -21,7 +26,54 @@ export function TrialFlow({
   onNext,
   onSave,
   onReset,
+  onSkipToVerdict,
+  onAbandon,
 }: TrialFlowProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    containerRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }, [phase]);
+
+  const showSkip = phase !== "verdict" && phase !== "complete";
+
+  return (
+    <div ref={containerRef}>
+      {/* Trial toolbar */}
+      <div className="flex justify-between items-center mb-4 text-xs">
+        <button
+          onClick={onAbandon}
+          className="text-amber-500/40 hover:text-amber-400 transition-colors font-serif cursor-pointer"
+        >
+          Abandon Trial
+        </button>
+        {showSkip && (
+          <button
+            onClick={onSkipToVerdict}
+            className="text-amber-500/40 hover:text-amber-400 transition-colors font-serif cursor-pointer"
+          >
+            Skip to Verdict &raquo;
+          </button>
+        )}
+      </div>
+
+      {/* Phase content */}
+      {renderPhase(phase, trialData, score, onNext, onSave, onReset)}
+    </div>
+  );
+}
+
+function renderPhase(
+  phase: TrialPhase,
+  trialData: TrialResult,
+  score: number,
+  onNext: () => void,
+  onSave: () => void,
+  onReset: () => void
+) {
   switch (phase) {
     case "judge":
       return (
@@ -33,17 +85,11 @@ export function TrialFlow({
       );
     case "prosecutor":
       return (
-        <ProsecutorPhase
-          argument={trialData.prosecution}
-          onComplete={onNext}
-        />
+        <ProsecutorPhase argument={trialData.prosecution} onComplete={onNext} />
       );
     case "defense":
       return (
-        <DefensePhase
-          argument={trialData.defense}
-          onComplete={onNext}
-        />
+        <DefensePhase argument={trialData.defense} onComplete={onNext} />
       );
     case "jury":
       return (

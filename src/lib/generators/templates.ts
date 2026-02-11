@@ -47,7 +47,13 @@ export function fillTemplate(
   template: string,
   vars: Record<string, string>
 ): string {
-  return template.replace(/\{(\w+)\}/g, (match, key: string) =>
-    key in vars ? vars[key] : match
-  );
+  return template.replace(/\{(\w+)\}/g, (match, key: string) => {
+    if (key in vars) return vars[key];
+    if (process.env.NODE_ENV === "development") {
+      console.warn(
+        `[fillTemplate] Missing key "${key}" in template: "${template.slice(0, 60)}..."`
+      );
+    }
+    return match;
+  });
 }

@@ -69,17 +69,17 @@ function semanticAbsurdity(misheard: string, real: string): number {
   const misheardLow = misheard.toLowerCase();
   const realLow = real.toLowerCase();
 
-  let misheardHits = 0;
-  let realHits = 0;
+  const misheardMatches = new Set<string>();
+  const realMatches = new Set<string>();
 
   for (const words of Object.values(ABSURD_CATEGORIES)) {
     for (const word of words) {
-      if (misheardLow.includes(word)) misheardHits++;
-      if (realLow.includes(word)) realHits++;
+      if (misheardLow.includes(word)) misheardMatches.add(word);
+      if (realLow.includes(word)) realMatches.add(word);
     }
   }
 
-  const newAbsurdWords = Math.max(misheardHits - realHits, 0);
+  const newAbsurdWords = Math.max(misheardMatches.size - realMatches.size, 0);
   return Math.min(newAbsurdWords / 3, 1);
 }
 

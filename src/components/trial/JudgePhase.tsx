@@ -13,7 +13,7 @@ interface JudgePhaseProps {
 const AUTO_ADVANCE_MS = 2000;
 
 export function JudgePhase({ name, intro, onComplete }: JudgePhaseProps) {
-  const { displayText, isComplete } = useTypewriter(intro);
+  const { displayText, isComplete, skipToEnd } = useTypewriter(intro);
   const [canContinue, setCanContinue] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -52,9 +52,15 @@ export function JudgePhase({ name, intro, onComplete }: JudgePhaseProps) {
         </div>
 
         {/* Typewriter intro */}
-        <blockquote className="border-l-2 border-amber-700 pl-4 text-amber-100/90 italic font-serif leading-relaxed min-h-[3rem]">
+        <blockquote
+          className={`border-l-2 border-amber-700 pl-4 text-amber-100/90 italic font-serif leading-relaxed min-h-[3rem] ${
+            !isComplete ? "cursor-pointer" : ""
+          }`}
+          onClick={!isComplete ? skipToEnd : undefined}
+          title={!isComplete ? "Click to skip" : undefined}
+        >
           &ldquo;{displayText}
-          {!isComplete && <span className="animate-pulse">|</span>}
+          {!isComplete && <span className="animate-cursorBlink">|</span>}
           {isComplete && "&rdquo;"}
         </blockquote>
 
@@ -65,7 +71,7 @@ export function JudgePhase({ name, intro, onComplete }: JudgePhaseProps) {
               if (timerRef.current) clearTimeout(timerRef.current);
               setCanContinue(true);
             }}
-            className="mt-4 w-full text-center text-amber-500/50 text-sm hover:text-amber-400 transition-colors animate-fadeIn cursor-pointer"
+            className="mt-4 w-full text-center text-amber-500/50 text-sm hover:text-amber-400 transition-colors animate-delayedFadeIn cursor-pointer"
           >
             Click to continue
           </button>

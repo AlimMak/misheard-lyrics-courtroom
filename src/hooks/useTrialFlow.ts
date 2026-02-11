@@ -98,6 +98,17 @@ export function useTrialFlow() {
     schedulePhase(next);
   }, [state.phase, schedulePhase]);
 
+  const skipToVerdict = useCallback(() => {
+    if (timerRef.current !== null) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    setState((prev) => {
+      if (prev.trialData === null) return prev;
+      return { ...prev, phase: "verdict" };
+    });
+  }, []);
+
   const reset = useCallback(() => {
     if (timerRef.current !== null) {
       clearTimeout(timerRef.current);
@@ -112,6 +123,7 @@ export function useTrialFlow() {
     score: state.score,
     startTrial,
     nextPhase,
+    skipToVerdict,
     reset,
   } as const;
 }

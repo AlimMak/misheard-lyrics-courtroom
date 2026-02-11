@@ -9,11 +9,12 @@ import { CaseForm } from "../components/case-filing/CaseForm";
 import { TrialFlow } from "../components/trial/TrialFlow";
 import { HallOfShame } from "../components/hall-of-shame/HallOfShame";
 import { Badge } from "../components/shared/Badge";
+import { ErrorBoundary } from "../components/shared/ErrorBoundary";
 
 type Tab = "file" | "shame";
 
 export default function Home() {
-  const { phase, trialData, score, startTrial, nextPhase, reset } =
+  const { phase, trialData, score, startTrial, nextPhase, skipToVerdict, reset } =
     useTrialFlow();
   const { entries, addEntry, clearAll } = useHallOfShame();
   const { count, tier, refresh } = useBadge();
@@ -88,10 +89,14 @@ export default function Home() {
 
       {/* Content */}
       {phase === "idle" && tab === "file" && (
-        <CaseForm onSubmit={handleFile} />
+        <ErrorBoundary>
+          <CaseForm onSubmit={handleFile} />
+        </ErrorBoundary>
       )}
       {phase === "idle" && tab === "shame" && (
-        <HallOfShame entries={entries} onClear={handleClear} />
+        <ErrorBoundary>
+          <HallOfShame entries={entries} onClear={handleClear} />
+        </ErrorBoundary>
       )}
       {phase === "loading" && (
         <p className="text-center text-amber-400/60 font-serif text-lg animate-pulse py-16">
@@ -99,14 +104,18 @@ export default function Home() {
         </p>
       )}
       {isTrialActive && trialData && score !== null && (
-        <TrialFlow
-          phase={phase}
-          trialData={trialData}
-          score={score}
-          onNext={nextPhase}
-          onSave={handleSave}
-          onReset={reset}
-        />
+        <ErrorBoundary fallbackMessage="The trial has encountered an unexpected error. Please file a new case.">
+          <TrialFlow
+            phase={phase}
+            trialData={trialData}
+            score={score}
+            onNext={nextPhase}
+            onSave={handleSave}
+            onReset={reset}
+            onSkipToVerdict={skipToVerdict}
+            onAbandon={reset}
+          />
+        </ErrorBoundary>
       )}
     </main>
   );
